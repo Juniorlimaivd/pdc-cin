@@ -20,22 +20,22 @@ func (acc *Account) withdraw(amount float64) {
 	acc.balance -= amount
 }
 
-func transfer(ac1 *Account, ac2 *Account, amount float64) {
-	fmt.Println("Transfering from", ac1.id, "to ", ac2.id)
+func transfer(payer *Account, payee *Account, amount float64) {
+	fmt.Println("Transfering from", payer.id, "to", payee.id)
 
-	fmt.Println("Locking ", ac1.id)
-	ac1.acessControl.Lock()
-	fmt.Println("Locking ", ac2.id)
-	ac2.acessControl.Lock()
+	fmt.Println("Locking ", payer.id)
+	payer.acessControl.Lock()
+	fmt.Println("Locking ", payee.id)
+	payee.acessControl.Lock()
 
 	fmt.Println("Transfering...")
-	ac1.withdraw(amount)
-	ac2.deposit(amount)
+	payer.withdraw(amount)
+	payee.deposit(amount)
 
-	fmt.Println("Unlocking ", ac1.id)
-	ac1.acessControl.Unlock()
-	fmt.Println("Unlocking ", ac2.id)
-	ac2.acessControl.Unlock()
+	fmt.Println("Unlocking ", payer.id)
+	payer.acessControl.Unlock()
+	fmt.Println("Unlocking ", payee.id)
+	payee.acessControl.Unlock()
 }
 
 func main() {
