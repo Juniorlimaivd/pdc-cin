@@ -2,61 +2,101 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"io"
+	"log"
 	"net"
+	"strings"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
+type HandleFunc func(*bufio.ReadWriter)
+
 type Endpoint struct {
-	ln   net.Listener
-	conn net.Conn
-	w    sync.WaitGroup
-	ch   chan string
+	listener net.Listener
+	handler  map[string]HandleFunc
+	m        sync.RWMutex
 }
 
 func NewEndpoint() *Endpoint {
-	ep := &Endpoint{}
-	return ep
+	return &Endpoint{
+		handler: map[string]HandleFunc{},
+	}
 }
 
-func (ep *Endpoint) Start() {
-	ln, err := net.Listen("tcp", ":8081")
+func (e *Endpoint) AddHandleFunc(name string, f HandleFunc) {
+	e.m.Lock()
+	e.handler[name] = f
+	e.m.Unlock()
+}
+
+func (e *Endpoint) Listen(port string) error {
+	var err error
+	e.listener, err = net.Listen("tcp", port)
 	if err != nil {
-		panic(err)
+		return errors.Wrapf(err, "Unable to listen on port %s\n", port)
 	}
-	ep.ln = ln
-	ep.ch = make(chan string)
-	ep.w.Add(1)
-
-	go func() {
-		defer ep.w.Done()
-		for {
-			conn, err := ep.ln.Accept()
-			if err != nil {
-				fmt.Println("closed listener")
-				break
-			}
-			fmt.Println("New client", ln.Addr())
-			for {
-				msg, err := bufio.NewReader(conn).ReadString('\n')
-				fmt.Print("New Message:", msg)
-				if err != nil {
-					fmt.Println("closed socket")
-					conn.Close()
-					break
-				}
-				ep.ch <- msg
-			}
+	log.Println("Listen on", e.listener.Addr().String())
+	for {
+		conn, err := e.listener.Accept()
+		log.Println("Accept a connection request from", conn.RemoteAddr())
+		if err != nil {
+			log.Println("Failed accepting a connection request:", err)
+			continue
 		}
-	}()
-
+		go e.handleMessages(conn)
+	}
 }
 
-func (ep *Endpoint) Stop() {
-	fmt.Println("stop endpoint")
-	ep.ln.Close()
-	if ep.conn != nil {
-		ep.conn.Close()
+func (e *Endpoint) handleMessages(conn net.Conn) {
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+
+	defer conn.Close()
+
+	for {
+		log.Println("Handle incoming commands.")
+		cmd, err := e.parseCommand(rw)
+
+		switch {
+		case err == io.EOF:
+			log.Println(conn.RemoteAddr(), "close this connection.\n   ---")
+			return
+		case err != nil:
+			log.Println("\nError reading command. Got: '"+cmd+"'\n", err)
+			return
+		case cmd == "":
+			log.Println("Ignoring empty command")
+			continue
+		}
+
+		log.Print("Receive command '" + cmd + "'")
+
+		handleCommand := e.getCommandHandler(cmd)
+		if handleCommand != nil {
+			handleCommand(rw)
+		}
 	}
-	ep.w.Wait()
+}
+
+func (e *Endpoint) parseCommand(rw *bufio.ReadWriter) (string, error) {
+	cmd, err := rw.ReadString('\n')
+
+	if err != nil {
+		return "", err
+	}
+
+	cmd = strings.Trim(cmd, "\n ")
+	return cmd, nil
+}
+
+func (e *Endpoint) getCommandHandler(cmd string) HandleFunc {
+	e.m.RLock()
+	handleCommand, ok := e.handler[cmd]
+	e.m.RUnlock()
+	if !ok {
+		log.Println("Command '" + cmd + "' is not registered.")
+		return nil
+	}
+	return handleCommand
 }
