@@ -24,17 +24,21 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	err := rw.Flush()
 	if err != nil {
 		fmt.Println("Flush failed")
+		return err
 	}
 
 	err = enc.Encode(testData)
 	if err != nil {
 		fmt.Println("Error encoding", err)
+		return err
 	}
 	err = rw.Flush()
 	if err != nil {
 		fmt.Println("Flush failed")
+		return err
 	}
-	return err
+
+	return nil
 }
 
 func main() {
