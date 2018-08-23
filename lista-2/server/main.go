@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"strings"
 )
 
 var commChannel = make(chan TransferData)
@@ -27,12 +28,19 @@ func handleTransfer(rw *bufio.ReadWriter) {
 }
 
 func handleGetBalance(rw *bufio.ReadWriter) {
+	log.Println(" -- Balance --")
 	id, err := rw.ReadString('\n')
+	id = strings.Trim(id, "\n ")
 	if err != nil {
 		log.Println("Error reading ID from buffer:", err)
 		return
 	}
-	fmt.Println("Account id:", id)
+	log.Printf("%s: $%.2f\n", id, accounts[id].balance)
+	rw.WriteString(fmt.Sprintf("%.2f\n", accounts[id].balance))
+	if err != nil {
+		log.Println("Cannot write to connection.\n", err)
+	}
+	rw.Flush()
 }
 
 func handleWithdraw(rw *bufio.ReadWriter) {

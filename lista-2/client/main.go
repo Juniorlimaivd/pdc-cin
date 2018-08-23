@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/gob"
 	"fmt"
+	"strings"
 )
 
 type transferData struct {
@@ -41,6 +42,27 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	return nil
 }
 
+func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
+	rw.WriteString("BALANCE\n")
+	err := rw.Flush()
+	if err != nil {
+		fmt.Println("Flush failed")
+		return err
+	}
+	rw.WriteString("AC2\n")
+	err = rw.Flush()
+	if err != nil {
+		fmt.Println("Flush failed")
+		return err
+	}
+
+	balance, _ := rw.ReadString('\n')
+
+	fmt.Println("Balance: " + strings.Trim(balance, "\n "))
+
+	return nil
+}
+
 func main() {
 
 	client := NewClient()
@@ -48,6 +70,11 @@ func main() {
 		shortName:   "T",
 		longName:    "Transfer Command",
 		description: "Do somenthing"}, transferCommand)
+
+	client.AddCommandFunc(CommandInfo{
+		shortName:   "B",
+		longName:    "Get Balance Command",
+		description: "Do somenthing"}, getBalanceCommand)
 
 	err := client.Start("127.0.0.1:8081")
 
