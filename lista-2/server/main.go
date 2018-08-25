@@ -90,12 +90,12 @@ func transferWorker() {
 func main() {
 	go transferWorker()
 
-	endpoint := NewEndpoint()
-	endpoint.AddHandleFunc("TRANSFER", handleTransfer)
-	endpoint.AddHandleFunc("BALANCE", handleGetBalance)
-	endpoint.AddHandleFunc("WITHDRAW", handleWithdraw)
-	endpoint.AddHandleFunc("DEPOSIT", handleDeposit)
-	endpoint.Listen(":8081")
+	endpoint := newEndpoint()
+	endpoint.addHandleFunc("TRANSFER", handleTransfer)
+	endpoint.addHandleFunc("BALANCE", handleGetBalance)
+	endpoint.addHandleFunc("WITHDRAW", handleWithdraw)
+	endpoint.addHandleFunc("DEPOSIT", handleDeposit)
+	endpoint.listen(":8081")
 
 	fmt.Scanln()
 }

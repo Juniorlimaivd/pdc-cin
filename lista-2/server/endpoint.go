@@ -11,27 +11,27 @@ import (
 	"github.com/pkg/errors"
 )
 
-type HandleFunc func(*bufio.ReadWriter)
+type handleFunc func(*bufio.ReadWriter)
 
 type Endpoint struct {
 	listener net.Listener
-	handler  map[string]HandleFunc
+	handler  map[string]handleFunc
 	m        sync.RWMutex
 }
 
-func NewEndpoint() *Endpoint {
+func newEndpoint() *Endpoint {
 	return &Endpoint{
-		handler: map[string]HandleFunc{},
+		handler: map[string]handleFunc{},
 	}
 }
 
-func (e *Endpoint) AddHandleFunc(name string, f HandleFunc) {
+func (e *Endpoint) addHandleFunc(name string, f handleFunc) {
 	e.m.Lock()
 	e.handler[name] = f
 	e.m.Unlock()
 }
 
-func (e *Endpoint) Listen(port string) error {
+func (e *Endpoint) listen(port string) error {
 	var err error
 	e.listener, err = net.Listen("tcp", port)
 	if err != nil {
@@ -55,7 +55,7 @@ func (e *Endpoint) handleMessages(conn net.Conn) {
 	defer conn.Close()
 
 	for {
-		log.Println("Handle incoming commands.")
+		log.Println("Handle incoming commands...")
 		cmd, err := e.parseCommand(rw)
 
 		switch {
@@ -90,7 +90,7 @@ func (e *Endpoint) parseCommand(rw *bufio.ReadWriter) (string, error) {
 	return cmd, nil
 }
 
-func (e *Endpoint) getCommandHandler(cmd string) HandleFunc {
+func (e *Endpoint) getCommandHandler(cmd string) handleFunc {
 	e.m.RLock()
 	handleCommand, ok := e.handler[cmd]
 	e.m.RUnlock()
