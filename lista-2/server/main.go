@@ -44,11 +44,29 @@ func handleGetBalance(rw *bufio.ReadWriter) {
 }
 
 func handleWithdraw(rw *bufio.ReadWriter) {
+	log.Println(" -- Withdraw --")
 
+	var accOperation AccOperation
+	dec := gob.NewDecoder(rw)
+	err := dec.Decode(&accOperation)
+	if err != nil {
+		log.Println("Error decoding accOperation:", err)
+		return
+	}
+	log.Println(accOperation)
 }
 
 func handleDeposit(rw *bufio.ReadWriter) {
+	log.Println(" -- Deposit --")
 
+	var accOperation AccOperation
+	dec := gob.NewDecoder(rw)
+	err := dec.Decode(&accOperation)
+	if err != nil {
+		log.Println("Error decoding accOperation:", err)
+		return
+	}
+	log.Println(accOperation)
 }
 
 func transferWorker() {

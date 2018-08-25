@@ -6,6 +6,11 @@ type TransferData struct {
 	Amount  float32
 }
 
+type AccOperation struct {
+	AccID  string
+	Amount float32
+}
+
 type Account struct {
 	balance float32
 }

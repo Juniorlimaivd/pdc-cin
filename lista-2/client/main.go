@@ -2,9 +2,7 @@ package main
 
 import (
 	"bufio"
-	"encoding/gob"
 	"fmt"
-	"strings"
 )
 
 type transferData struct {
@@ -13,52 +11,69 @@ type transferData struct {
 	Amount  float32
 }
 
+type accOperation struct {
+	AccID  string
+	Amount float32
+}
+
 func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	testData := transferData{
 		PayerID: "AC1",
 		PayeeID: "AC2",
 		Amount:  200}
 
-	enc := gob.NewEncoder(rw)
-
-	rw.WriteString("TRANSFER\n")
-	err := rw.Flush()
-	if err != nil {
-		fmt.Println("Flush failed")
-		return err
-	}
-
-	err = enc.Encode(testData)
-	if err != nil {
-		fmt.Println("Error encoding", err)
-		return err
-	}
-	err = rw.Flush()
-	if err != nil {
-		fmt.Println("Flush failed")
-		return err
-	}
+	sendString(rw, "TRANSFER")
+	sendEncondedData(rw, testData)
 
 	return nil
 }
 
 func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	rw.WriteString("BALANCE\n")
-	err := rw.Flush()
-	if err != nil {
-		fmt.Println("Flush failed")
-		return err
-	}
-	rw.WriteString("AC2\n")
-	err = rw.Flush()
-	if err != nil {
-		fmt.Println("Flush failed")
-		return err
-	}
+	sendString(rw, "BALANCE")
 
-	balance, _ := rw.ReadString('\n')
+	fmt.Print("Account ID: ")
+	id, _ := readString(reader)
 
-	fmt.Println("Balance: " + strings.Trim(balance, "\n "))
+	sendString(rw, id)
+
+	balance, _ := recvData(rw)
+
+	fmt.Println("Balance: " + balance)
+
+	return nil
+}
+
+func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
+	sendString(rw, "WITHDRAW")
+
+	fmt.Print("Account ID: ")
+	id, _ := readString(reader)
+
+	fmt.Print("Amount: ")
+	amount, _ := readFloat32(reader)
+
+	testData := accOperation{
+		AccID:  id,
+		Amount: amount}
+
+	sendEncondedData(rw, testData)
+
+	return nil
+}
+
+func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
+	sendString(rw, "DEPOSIT")
+	fmt.Print("Account ID: ")
+	id, _ := readString(reader)
+
+	fmt.Print("Amount: ")
+	amount, _ := readFloat32(reader)
+
+	testData := accOperation{
+		AccID:  id,
+		Amount: amount}
+
+	sendEncondedData(rw, testData)
 
 	return nil
 }
@@ -75,6 +90,16 @@ func main() {
 		shortName:   "B",
 		longName:    "Get Balance Command",
 		description: "Do somenthing"}, getBalanceCommand)
+
+	client.AddCommandFunc(CommandInfo{
+		shortName:   "W",
+		longName:    "Withdraw Command",
+		description: "Do somenthing"}, withdrawCommand)
+
+	client.AddCommandFunc(CommandInfo{
+		shortName:   "D",
+		longName:    "Deposit Command",
+		description: "Do something"}, depositCommand)
 
 	err := client.Start("127.0.0.1:8081")
 
