@@ -55,7 +55,7 @@ func (e *Endpoint) handleMessages(conn net.Conn) {
 	defer conn.Close()
 
 	for {
-		log.Println("Handle incoming commands...")
+		log.Println("Handling incoming commands...")
 		cmd, err := e.parseCommand(rw)
 
 		switch {

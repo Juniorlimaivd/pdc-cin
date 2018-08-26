@@ -5,14 +5,15 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"strings"
 )
 
 var commChannel = make(chan TransferData)
 
 var accounts = map[string]*Account{
 	"AC1": &Account{balance: 1000},
-	"AC2": &Account{balance: 2000}}
+	"AC2": &Account{balance: 2000},
+	"AC3": &Account{balance: 3000},
+	"AC4": &Account{balance: 4000}}
 
 func handleTransfer(rw *bufio.ReadWriter) {
 	log.Println("Handling Transfer")
@@ -29,18 +30,12 @@ func handleTransfer(rw *bufio.ReadWriter) {
 
 func handleGetBalance(rw *bufio.ReadWriter) {
 	log.Println(" -- Balance --")
-	id, err := rw.ReadString('\n')
-	id = strings.Trim(id, "\n ")
-	if err != nil {
-		log.Println("Error reading ID from buffer:", err)
-		return
-	}
+
+	id, _ := recvString(rw)
 	log.Printf("%s: $%.2f\n", id, accounts[id].balance)
-	rw.WriteString(fmt.Sprintf("%.2f\n", accounts[id].balance))
-	if err != nil {
-		log.Println("Cannot write to connection.\n", err)
-	}
-	rw.Flush()
+
+	sendString(rw, fmt.Sprintf("%.2f", accounts[id].balance))
+
 }
 
 func handleWithdraw(rw *bufio.ReadWriter) {
@@ -66,6 +61,7 @@ func handleDeposit(rw *bufio.ReadWriter) {
 		log.Println("Error decoding accOperation:", err)
 		return
 	}
+
 	log.Println(accOperation)
 }
 
@@ -86,6 +82,8 @@ func transferWorker() {
 
 	}
 }
+
+// TODO: Operation ID
 
 func main() {
 	go transferWorker()

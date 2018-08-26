@@ -11,6 +11,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TransferData struct {
+	PayerID string
+	PayeeID string
+	Amount  float32
+}
+
+type AccOperation struct {
+	AccID  string
+	Amount float32
+}
+
 type CommandFunc func(*bufio.ReadWriter, *bufio.Reader) error
 
 type CommandInfo struct {

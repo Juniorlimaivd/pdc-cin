@@ -5,101 +5,95 @@ import (
 	"fmt"
 )
 
-type transferData struct {
-	PayerID string
-	PayeeID string
-	Amount  float32
-}
-
-type accOperation struct {
-	AccID  string
-	Amount float32
-}
-
 func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	testData := transferData{
-		PayerID: "AC1",
-		PayeeID: "AC2",
-		Amount:  200}
+	fmt.Print(" * payer ID: ")
+	payerID, _ := readString(reader)
+	fmt.Print(" * payee ID: ")
+	payeeID, _ := readString(reader)
+	fmt.Print(" * amount: ")
+	amount, _ := readFloat32(reader)
+
+	transferData := TransferData{
+		PayerID: payerID,
+		PayeeID: payeeID,
+		Amount:  amount}
 
 	sendString(rw, "TRANSFER")
-	sendEncondedData(rw, testData)
+	sendEncondedData(rw, transferData)
+	check, _ := recvString(rw)
 
+	if check == "OK" {
+		fmt.Print("\n % Sucessful operation %\n\n")
+	}
 	return nil
 }
 
 func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	sendString(rw, "BALANCE")
-
-	fmt.Print("Account ID: ")
+	fmt.Print(" * account ID: ")
 	id, _ := readString(reader)
 
+	sendString(rw, "BALANCE")
 	sendString(rw, id)
 
-	balance, _ := recvData(rw)
-
-	fmt.Println("Balance: " + balance)
+	balance, _ := recvString(rw)
+	fmt.Printf(" ---------------------\n + balance: %s\n\n", balance)
 
 	return nil
 }
 
 func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	sendString(rw, "WITHDRAW")
-
-	fmt.Print("Account ID: ")
+	fmt.Print(" * account ID: ")
 	id, _ := readString(reader)
-
-	fmt.Print("Amount: ")
+	fmt.Print(" * amount: ")
 	amount, _ := readFloat32(reader)
 
-	testData := accOperation{
+	accOperation := AccOperation{
 		AccID:  id,
 		Amount: amount}
 
-	sendEncondedData(rw, testData)
+	sendString(rw, "WITHDRAW")
+	sendEncondedData(rw, accOperation)
 
 	return nil
 }
 
 func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	sendString(rw, "DEPOSIT")
 	fmt.Print("Account ID: ")
 	id, _ := readString(reader)
-
 	fmt.Print("Amount: ")
 	amount, _ := readFloat32(reader)
 
-	testData := accOperation{
+	accOperation := AccOperation{
 		AccID:  id,
 		Amount: amount}
 
-	sendEncondedData(rw, testData)
+	sendString(rw, "DEPOSIT")
+	sendEncondedData(rw, accOperation)
 
 	return nil
 }
 
 func main() {
-
 	client := NewClient()
 	client.AddCommandFunc(CommandInfo{
 		shortName:   "T",
 		longName:    "Transfer Command",
-		description: "Do somenthing"}, transferCommand)
+		description: "Transfer <amount> from <payer ID> to <payee ID>"}, transferCommand)
 
 	client.AddCommandFunc(CommandInfo{
 		shortName:   "B",
 		longName:    "Get Balance Command",
-		description: "Do somenthing"}, getBalanceCommand)
+		description: "Get balance of <account ID>"}, getBalanceCommand)
 
 	client.AddCommandFunc(CommandInfo{
 		shortName:   "W",
 		longName:    "Withdraw Command",
-		description: "Do somenthing"}, withdrawCommand)
+		description: "Withdraw from the <account ID>"}, withdrawCommand)
 
 	client.AddCommandFunc(CommandInfo{
 		shortName:   "D",
 		longName:    "Deposit Command",
-		description: "Do something"}, depositCommand)
+		description: "Deposit into the <account ID>"}, depositCommand)
 
 	err := client.Start("127.0.0.1:8081")
 

@@ -34,7 +34,7 @@ func sendEncondedData(rw *bufio.ReadWriter, data interface{}) error {
 	return nil
 }
 
-func recvData(rw *bufio.ReadWriter) (string, error) {
+func recvString(rw *bufio.ReadWriter) (string, error) {
 	data, err := rw.ReadString('\n')
 	return strings.Trim(data, "\n "), err
 }
