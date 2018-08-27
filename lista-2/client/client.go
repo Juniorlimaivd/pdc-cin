@@ -11,15 +11,27 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TransferData is a packet for transfer request
 type TransferData struct {
 	PayerID string
 	PayeeID string
 	Amount  float32
 }
 
+// OperationResult encapsulates a packet for server response
+type OperationResult struct {
+	ResultDescription string
+}
+
+// AccOperation is a packet for withdraw or deposit request
 type AccOperation struct {
 	AccID  string
 	Amount float32
+}
+
+// AccountInformation is a packet for balance request
+type AccountInformation struct {
+	Id string
 }
 
 type CommandFunc func(*bufio.ReadWriter, *bufio.Reader) error

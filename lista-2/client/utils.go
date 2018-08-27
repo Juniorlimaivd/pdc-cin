@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -34,6 +35,16 @@ func sendEncondedData(rw *bufio.ReadWriter, data interface{}) error {
 	return nil
 }
 
+func recvOperationResult(rw *bufio.ReadWriter) (OperationResult, error) {
+	var result OperationResult
+
+	decoder := gob.NewDecoder(rw)
+
+	decoder.Decode(&result)
+
+	return result, nil
+}
+
 func recvString(rw *bufio.ReadWriter) (string, error) {
 	data, err := rw.ReadString('\n')
 	return strings.Trim(data, "\n "), err
@@ -57,4 +68,13 @@ func readFloat32(reader *bufio.Reader) (float32, error) {
 		fmt.Println("Error parsing float: ", err)
 	}
 	return float32(value), nil
+}
+
+func packtRequestData(opType string, data interface{}) RequestOperationData {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	encoder.Encode(data)
+	newData := buf.Bytes()
+
+	return RequestOperationData{OperationType: opType, Data: newData}
 }

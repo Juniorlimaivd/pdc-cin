@@ -2,8 +2,16 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/gob"
 	"fmt"
 )
+
+// RequestOperationData is cool
+type RequestOperationData struct {
+	OperationType string
+	Data          []byte
+}
 
 func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print(" * payer ID: ")
@@ -18,11 +26,19 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 		PayeeID: payeeID,
 		Amount:  amount}
 
-	sendString(rw, "TRANSFER")
-	sendEncondedData(rw, transferData)
-	check, _ := recvString(rw)
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
 
-	if check == "OK" {
+	encoder.Encode(transferData)
+	data := buf.Bytes()
+
+	request := RequestOperationData{OperationType: "TRANSFER", Data: data}
+
+	sendEncondedData(rw, request)
+
+	check, _ := recvOperationResult(rw)
+
+	if check.ResultDescription == "OK" {
 		fmt.Print("\n % Sucessful operation %\n\n")
 	}
 	return nil
@@ -32,11 +48,14 @@ func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print(" * account ID: ")
 	id, _ := readString(reader)
 
-	sendString(rw, "BALANCE")
-	sendString(rw, id)
+	accData := AccountInformation{Id: id}
 
-	balance, _ := recvString(rw)
-	fmt.Printf(" ---------------------\n + balance: %s\n\n", balance)
+	requestPkt := packtRequestData("BALANCE", accData)
+
+	sendEncondedData(rw, requestPkt)
+
+	result, _ := recvOperationResult(rw)
+	fmt.Printf(" ---------------------\n + balance: %s\n\n", result.ResultDescription)
 
 	return nil
 }
@@ -51,8 +70,8 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 		AccID:  id,
 		Amount: amount}
 
-	sendString(rw, "WITHDRAW")
-	sendEncondedData(rw, accOperation)
+	requestPkt := packtRequestData("WITHDRAW", accOperation)
+	sendEncondedData(rw, requestPkt)
 
 	return nil
 }
@@ -67,8 +86,8 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 		AccID:  id,
 		Amount: amount}
 
-	sendString(rw, "DEPOSIT")
-	sendEncondedData(rw, accOperation)
+	requestPkt := packtRequestData("DEPOSIT", accOperation)
+	sendEncondedData(rw, requestPkt)
 
 	return nil
 }

@@ -2,19 +2,27 @@ package main
 
 import (
 	"bufio"
+	"encoding/gob"
 	"io"
 	"log"
 	"net"
-	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
 )
 
-type handleFunc func(*bufio.ReadWriter)
+// RequestOperationData holds information about sended data
+type RequestOperationData struct {
+	OperationType string
+	Data          []byte
+}
 
+type handleFunc func(*Endpoint, *RequestOperationData)
+
+// Endpoint handles all incoming data fro socket and redirect to proper handler
 type Endpoint struct {
 	listener net.Listener
+	rw       *bufio.ReadWriter
 	handler  map[string]handleFunc
 	m        sync.RWMutex
 }
@@ -50,53 +58,63 @@ func (e *Endpoint) listen(port string) error {
 }
 
 func (e *Endpoint) handleMessages(conn net.Conn) {
-	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	e.rw = bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
 	defer conn.Close()
 
 	for {
 		log.Println("Handling incoming commands...")
-		cmd, err := e.parseCommand(rw)
+		request, err := e.parseCommand(e.rw)
 
 		switch {
 		case err == io.EOF:
 			log.Println(conn.RemoteAddr(), "close this connection.\n   ---")
 			return
 		case err != nil:
-			log.Println("\nError reading command. Got: '"+cmd+"'\n", err)
+			log.Println("\nError reading command. Got: \n", err)
 			return
-		case cmd == "":
-			log.Println("Ignoring empty command")
-			continue
+		case request.OperationType == "":
+			log.Println("Ignoring empty command, closing connection...")
+			return
 		}
 
-		log.Print("Receive command '" + cmd + "'")
+		log.Print("Receive command '" + request.OperationType + "'")
 
-		handleCommand := e.getCommandHandler(cmd)
+		handleCommand := e.getCommandHandler(request)
 		if handleCommand != nil {
-			handleCommand(rw)
+			handleCommand(e, &request)
 		}
 	}
 }
 
-func (e *Endpoint) parseCommand(rw *bufio.ReadWriter) (string, error) {
-	cmd, err := rw.ReadString('\n')
+func (e *Endpoint) parseCommand(rw *bufio.ReadWriter) (RequestOperationData, error) {
+	var request RequestOperationData
 
-	if err != nil {
-		return "", err
-	}
+	decoder := gob.NewDecoder(rw)
 
-	cmd = strings.Trim(cmd, "\n ")
-	return cmd, nil
+	decoder.Decode(&request)
+
+	return request, nil
 }
 
-func (e *Endpoint) getCommandHandler(cmd string) handleFunc {
+func (e *Endpoint) getCommandHandler(request RequestOperationData) handleFunc {
 	e.m.RLock()
-	handleCommand, ok := e.handler[cmd]
+	handleCommand, ok := e.handler[request.OperationType]
 	e.m.RUnlock()
 	if !ok {
-		log.Println("Command '" + cmd + "' is not registered.")
+		log.Println("Command '" + request.OperationType + "' is not registered.")
 		return nil
 	}
 	return handleCommand
+}
+
+func (e *Endpoint) sendResultDescription(result string) {
+	pkt := OperationResult{ResultDescription: result}
+
+	encoder := gob.NewEncoder(e.rw)
+
+	encoder.Encode(pkt)
+
+	e.rw.Flush()
+
 }
