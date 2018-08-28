@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"math/rand"
+	"strconv"
 )
 
 // RequestOperationData is cool
@@ -14,12 +16,22 @@ type RequestOperationData struct {
 }
 
 func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
+	// fmt.Print(" * payer ID: ")
+	// payerID, _ := readString(reader)
+	// fmt.Print(" * payee ID: ")
+	// payeeID, _ := readString(reader)
+	// fmt.Print(" * amount: ")
+	// amount, _ := readFloat32(reader)
+
 	fmt.Print(" * payer ID: ")
-	payerID, _ := readString(reader)
+	payerID := strconv.Itoa(rand.Intn(100))
+	print(payerID)
 	fmt.Print(" * payee ID: ")
-	payeeID, _ := readString(reader)
+	payeeID := strconv.Itoa(rand.Intn(100))
+	print(payeeID)
 	fmt.Print(" * amount: ")
-	amount, _ := readFloat32(reader)
+	amount := rand.Float32() * 100.0
+	print(amount)
 
 	transferData := TransferData{
 		PayerID: payerID,
@@ -46,7 +58,10 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print(" * account ID: ")
-	id, _ := readString(reader)
+	//id, _ := readString(reader)
+	id := strconv.Itoa(rand.Intn(100))
+
+	print(id)
 
 	accData := AccountInformation{Id: id}
 
@@ -62,9 +77,13 @@ func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print(" * account ID: ")
-	id, _ := readString(reader)
+	//	id, _ := readString(reader)
+	id := strconv.Itoa(rand.Intn(100))
+	print(id)
 	fmt.Print(" * amount: ")
-	amount, _ := readFloat32(reader)
+	//amount, _ := readFloat32(reader)
+	amount := rand.Float32() * 100.0
+	print(amount)
 
 	accOperation := AccOperation{
 		AccID:  id,
@@ -84,9 +103,11 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print("Account ID: ")
-	id, _ := readString(reader)
+	//id, _ := readString(reader)
+	id := strconv.Itoa(rand.Intn(100))
 	fmt.Print("Amount: ")
-	amount, _ := readFloat32(reader)
+	//amount, _ := readFloat32(reader)
+	amount := rand.Float32() * 100.0
 
 	accOperation := AccOperation{
 		AccID:  id,
