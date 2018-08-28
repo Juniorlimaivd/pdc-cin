@@ -97,6 +97,8 @@ func handleWithdraw(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 	payee.withdraw(accOperation.Amount)
 
 	log.Println(accOperation)
+
+	e.sendResultDescription("OK", addr)
 }
 
 func handleDeposit(e *Endpoint, r *RequestOperationData, addr net.Addr) {
@@ -124,6 +126,8 @@ func handleDeposit(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 	payer.deposit(accOperation.Amount)
 
 	log.Println(accOperation)
+
+	e.sendResultDescription("OK", addr)
 }
 
 func transferWorker() {

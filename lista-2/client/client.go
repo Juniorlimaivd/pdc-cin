@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -77,15 +78,37 @@ func (acc *Client) handleCommands(conn net.Conn) {
 
 	defer conn.Close()
 
-	for {
-		fmt.Print("Type a command: ")
+	// for {
+	// 	fmt.Print("Type a command: ")
 
-		cmd, _ := acc.parseCommand(reader)
+	// 	cmd, _ := acc.parseCommand(reader)
+
+	// 	handleCommand := acc.getCommandHandler(cmd)
+	// 	if handleCommand != nil {
+	// 		log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
+	// 		err := handleCommand(rw, reader)
+	// 		if err != nil {
+	// 			log.Print(cmd, "Failed")
+	// 		}
+	// 	}
+	// }
+
+	for i := 0; i < 1000; i++ {
+		fmt.Print("Performing tests...")
+
+		cmd := "B"
 
 		handleCommand := acc.getCommandHandler(cmd)
 		if handleCommand != nil {
 			log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
+
+			start := time.Now()
 			err := handleCommand(rw, reader)
+			end := time.Now()
+
+			fmt.Println("Operation ", i, " took ", end.Sub(start)*1000.0, "seconds...")
+
+			time.Sleep(1 * time.Second)
 			if err != nil {
 				log.Print(cmd, "Failed")
 			}

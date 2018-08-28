@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"math/rand"
+	"strconv"
 )
 
 // RequestOperationData is cool
@@ -46,8 +48,9 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	fmt.Print(" * account ID: ")
-	id, _ := readString(reader)
-
+	//id, _ := readString(reader)
+	id := strconv.Itoa(rand.Intn(100))
+	print(id)
 	accData := AccountInformation{Id: id}
 
 	requestPkt := packtRequestData("BALANCE", accData)
@@ -73,6 +76,12 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	requestPkt := packtRequestData("WITHDRAW", accOperation)
 	sendEncondedData(rw, requestPkt)
 
+	check, _ := recvOperationResult(rw)
+
+	if check.ResultDescription == "OK" {
+		fmt.Print("\n % Sucessful operation %\n\n")
+	}
+
 	return nil
 }
 
@@ -88,6 +97,12 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 	requestPkt := packtRequestData("DEPOSIT", accOperation)
 	sendEncondedData(rw, requestPkt)
+
+	check, _ := recvOperationResult(rw)
+
+	if check.ResultDescription == "OK" {
+		fmt.Print("\n % Sucessful operation %\n\n")
+	}
 
 	return nil
 }

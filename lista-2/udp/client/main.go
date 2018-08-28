@@ -73,6 +73,12 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	requestPkt := packtRequestData("WITHDRAW", accOperation)
 	sendEncondedData(rw, requestPkt)
 
+	check, _ := recvOperationResult(rw)
+
+	if check.ResultDescription == "OK" {
+		fmt.Print("\n % Sucessful operation %\n\n")
+	}
+
 	return nil
 }
 
@@ -88,6 +94,12 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 
 	requestPkt := packtRequestData("DEPOSIT", accOperation)
 	sendEncondedData(rw, requestPkt)
+
+	check, _ := recvOperationResult(rw)
+
+	if check.ResultDescription == "OK" {
+		fmt.Print("\n % Sucessful operation %\n\n")
+	}
 
 	return nil
 }
