@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/tealeg/xlsx"
 )
 
 // TransferData is a packet for transfer request
@@ -68,8 +69,60 @@ func (acc *Client) Start(addr string) error {
 		return errors.Wrap(err, "Dialing "+addr+" failed")
 	}
 	acc.showDescriptions()
-	acc.handleCommands(conn)
+	//acc.handleCommands(conn)
+	acc.performOperationTest(conn, "T", 1000)
 	return nil
+}
+
+func (acc *Client) performOperationTest(conn net.Conn, operation string, times int) {
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	reader := bufio.NewReader(os.Stdin)
+
+	defer conn.Close()
+
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var err error
+
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("Sheet1")
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	cmd := operation
+
+	for i := 0; i < times; i++ {
+		fmt.Println("Performing tests...")
+
+		handleCommand := acc.getCommandHandler(cmd)
+		if handleCommand != nil {
+			log.Println("Performing - ", acc.commandInfo[cmd].longName, " -")
+
+			start := time.Now()
+			err := handleCommand(rw, reader)
+			end := time.Now()
+
+			fmt.Println("Operation ", i, " took ", end.Sub(start).Seconds())
+
+			row = sheet.AddRow()
+			cell = row.AddCell()
+			cell.SetFloat(end.Sub(start).Seconds() * 1000)
+
+			time.Sleep(100 * time.Millisecond)
+			if err != nil {
+				log.Print(cmd, "Failed")
+			}
+		}
+	}
+
+	err = file.Save("tcp_transfer.xlsx")
+
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
 }
 
 func (acc *Client) handleCommands(conn net.Conn) {
@@ -78,42 +131,21 @@ func (acc *Client) handleCommands(conn net.Conn) {
 
 	defer conn.Close()
 
-	// for {
-	// 	fmt.Print("Type a command: ")
+	for {
+		fmt.Print("Type a command: ")
 
-	// 	cmd, _ := acc.parseCommand(reader)
-
-	// 	handleCommand := acc.getCommandHandler(cmd)
-	// 	if handleCommand != nil {
-	// 		log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
-	// 		err := handleCommand(rw, reader)
-	// 		if err != nil {
-	// 			log.Print(cmd, "Failed")
-	// 		}
-	// 	}
-	// }
-
-	for i := 0; i < 1000; i++ {
-		fmt.Print("Performing tests...")
-
-		cmd := "B"
+		cmd, _ := acc.parseCommand(reader)
 
 		handleCommand := acc.getCommandHandler(cmd)
 		if handleCommand != nil {
 			log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
-
-			start := time.Now()
 			err := handleCommand(rw, reader)
-			end := time.Now()
-
-			fmt.Println("Operation ", i, " took ", end.Sub(start)*1000.0, "seconds...")
-
-			time.Sleep(1 * time.Second)
 			if err != nil {
 				log.Print(cmd, "Failed")
 			}
 		}
 	}
+
 }
 
 func (acc *Client) parseCommand(reader *bufio.Reader) (string, error) {
