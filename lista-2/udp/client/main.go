@@ -157,7 +157,7 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) e
 }
 
 func main() {
-	testBool := flag.Bool("testMode", false, "true for use testmode")
+	testBool := flag.Bool("test", false, "true for use testmode")
 
 	flag.Parse()
 

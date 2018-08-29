@@ -76,7 +76,7 @@ func (acc *Client) Start(addr string) error {
 		acc.showDescriptions()
 		acc.handleCommands(conn)
 	} else {
-		acc.performOperationTest(conn, 1000)
+		acc.performOperationTest(conn, 10000)
 	}
 
 	return nil
@@ -102,10 +102,10 @@ func (acc *Client) performOperationTest(conn net.Conn, times int) {
 
 	cmds := [4]string{"B", "W", "D", "T"}
 
-	filenames := [4]string{"tcp_balance.xlsx",
-		"tcp_withdraw.xlsx",
-		"tcp_deposit.xlsx",
-		"tcp_transfer.xlsx"}
+	filenames := [4]string{"tcp_balance_10000.xlsx",
+		"tcp_withdraw_10000.xlsx",
+		"tcp_deposit_10000.xlsx",
+		"tcp_transfer_10000.xlsx"}
 
 	for j, cmd := range cmds {
 		for i := 0; i < times; i++ {
