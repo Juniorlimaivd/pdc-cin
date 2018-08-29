@@ -36,7 +36,7 @@ type AccountInformation struct {
 	Id string
 }
 
-type CommandFunc func(*bufio.ReadWriter, *bufio.Reader) error
+type CommandFunc func(*bufio.ReadWriter, *bufio.Reader, bool) error
 
 type CommandInfo struct {
 	shortName   string
@@ -47,12 +47,14 @@ type CommandInfo struct {
 type Client struct {
 	command     map[string]CommandFunc
 	commandInfo map[string]CommandInfo
+	testMode    bool
 }
 
-func NewClient() *Client {
+func NewClient(mode bool) *Client {
 	return &Client{
 		command:     map[string]CommandFunc{},
 		commandInfo: map[string]CommandInfo{},
+		testMode:    mode,
 	}
 }
 
@@ -63,18 +65,24 @@ func (acc *Client) AddCommandFunc(commandInfo CommandInfo, f CommandFunc) {
 }
 
 func (acc *Client) Start(addr string) error {
+
 	log.Println("Dial " + addr)
 	conn, err := net.Dial("udp", addr)
 	if err != nil {
 		return errors.Wrap(err, "Dialing "+addr+" failed")
 	}
-	acc.showDescriptions()
-	//acc.handleCommands(conn)
-	acc.performOperationTest(conn, "T", 1000)
+
+	if !acc.testMode {
+		acc.showDescriptions()
+		acc.handleCommands(conn)
+	} else {
+		acc.performOperationTest(conn, 1000)
+	}
+
 	return nil
 }
 
-func (acc *Client) performOperationTest(conn net.Conn, operation string, times int) {
+func (acc *Client) performOperationTest(conn net.Conn, times int) {
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	reader := bufio.NewReader(os.Stdin)
 
@@ -92,37 +100,45 @@ func (acc *Client) performOperationTest(conn net.Conn, operation string, times i
 		fmt.Printf(err.Error())
 	}
 
-	cmd := operation
+	cmds := [4]string{"B", "W", "D", "T"}
 
-	for i := 0; i < times; i++ {
-		fmt.Println("Performing tests...")
+	filenames := [4]string{"udp_balance.xlsx",
+		"udp_withdraw.xlsx",
+		"udp_deposit.xlsx",
+		"udp_transfer.xlsx"}
 
-		handleCommand := acc.getCommandHandler(cmd)
-		if handleCommand != nil {
-			log.Println("Performing - ", acc.commandInfo[cmd].longName, " -")
+	for j, cmd := range cmds {
+		for i := 0; i < times; i++ {
+			fmt.Println("Performing tests...")
 
-			start := time.Now()
-			err := handleCommand(rw, reader)
-			end := time.Now()
+			handleCommand := acc.getCommandHandler(cmd)
+			if handleCommand != nil {
+				log.Println("Performing - ", acc.commandInfo[cmd].longName, " -")
 
-			fmt.Println("Operation ", i, " took ", end.Sub(start).Seconds())
+				start := time.Now()
+				err := handleCommand(rw, reader, acc.testMode)
+				end := time.Now()
 
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetFloat(end.Sub(start).Seconds() * 1000)
+				fmt.Println("Operation ", i, " took ", end.Sub(start).Seconds())
 
-			time.Sleep(100 * time.Millisecond)
-			if err != nil {
-				log.Print(cmd, "Failed")
+				row = sheet.AddRow()
+				cell = row.AddCell()
+				cell.SetFloat(end.Sub(start).Seconds() * 1000) // in miliseconds
+
+				time.Sleep(10 * time.Millisecond)
+				if err != nil {
+					log.Print(cmd, "Failed")
+				}
 			}
+		}
+
+		err = file.Save(filenames[j])
+
+		if err != nil {
+			fmt.Printf(err.Error())
 		}
 	}
 
-	err = file.Save("udp_transfer.xlsx")
-
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
 }
 
 func (acc *Client) handleCommands(conn net.Conn) {
@@ -139,12 +155,13 @@ func (acc *Client) handleCommands(conn net.Conn) {
 		handleCommand := acc.getCommandHandler(cmd)
 		if handleCommand != nil {
 			log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
-			err := handleCommand(rw, reader)
+			err := handleCommand(rw, reader, acc.testMode)
 			if err != nil {
 				log.Print(cmd, "Failed")
 			}
 		}
 	}
+
 }
 
 func (acc *Client) parseCommand(reader *bufio.Reader) (string, error) {

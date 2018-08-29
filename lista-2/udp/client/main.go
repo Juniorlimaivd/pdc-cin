@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -15,23 +16,30 @@ type RequestOperationData struct {
 	Data          []byte
 }
 
-func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	// fmt.Print(" * payer ID: ")
-	// payerID, _ := readString(reader)
-	// fmt.Print(" * payee ID: ")
-	// payeeID, _ := readString(reader)
-	// fmt.Print(" * amount: ")
-	// amount, _ := readFloat32(reader)
+func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
 
-	fmt.Print(" * payer ID: ")
-	payerID := strconv.Itoa(rand.Intn(100))
-	print(payerID)
-	fmt.Print(" * payee ID: ")
-	payeeID := strconv.Itoa(rand.Intn(100))
-	print(payeeID)
-	fmt.Print(" * amount: ")
-	amount := rand.Float32() * 100.0
-	print(amount)
+	var payerID, payeeID string
+	var amount float32
+
+	if !testMode {
+		fmt.Print(" * payer ID: ")
+		payerID, _ = readString(reader)
+		fmt.Print(" * payee ID: ")
+		payeeID, _ = readString(reader)
+		fmt.Print(" * amount: ")
+		amount, _ = readFloat32(reader)
+	} else {
+		fmt.Print(" * payer ID: ")
+		payerID = strconv.Itoa(rand.Intn(100))
+		fmt.Print(payerID)
+		fmt.Print("\n * payee ID: ")
+		payeeID = strconv.Itoa(rand.Intn(100))
+		fmt.Print(payeeID)
+		fmt.Print("\n * amount: ")
+		amount = rand.Float32() * 100.0
+		fmt.Print(amount)
+		fmt.Print("\n")
+	}
 
 	transferData := TransferData{
 		PayerID: payerID,
@@ -56,12 +64,16 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	return nil
 }
 
-func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	fmt.Print(" * account ID: ")
-	//id, _ := readString(reader)
-	id := strconv.Itoa(rand.Intn(100))
+func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+	var id string
 
-	print(id)
+	if !testMode {
+		fmt.Print(" * account ID: ")
+		id, _ = readString(reader)
+	} else {
+		fmt.Print(" * account ID: ")
+		id = strconv.Itoa(rand.Intn(100))
+	}
 
 	accData := AccountInformation{Id: id}
 
@@ -75,15 +87,24 @@ func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	return nil
 }
 
-func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	fmt.Print(" * account ID: ")
-	//	id, _ := readString(reader)
-	id := strconv.Itoa(rand.Intn(100))
-	print(id)
-	fmt.Print(" * amount: ")
-	//amount, _ := readFloat32(reader)
-	amount := rand.Float32() * 100.0
-	print(amount)
+func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+
+	var id string
+	var amount float32
+
+	if !testMode {
+		fmt.Print(" * account ID: ")
+		id, _ = readString(reader)
+		fmt.Print(" * amount: ")
+		amount, _ = readFloat32(reader)
+	} else {
+		fmt.Print(" * account ID: ")
+		id = strconv.Itoa(rand.Intn(100))
+		fmt.Print(id + "\n")
+		fmt.Print(" * amount: ")
+		amount = rand.Float32() * 100.0
+		fmt.Print(amount, "\n")
+	}
 
 	accOperation := AccOperation{
 		AccID:  id,
@@ -101,13 +122,23 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 	return nil
 }
 
-func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
-	fmt.Print("Account ID: ")
-	//id, _ := readString(reader)
-	id := strconv.Itoa(rand.Intn(100))
-	fmt.Print("Amount: ")
-	//amount, _ := readFloat32(reader)
-	amount := rand.Float32() * 100.0
+func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+	var id string
+	var amount float32
+
+	if !testMode {
+		fmt.Print(" * account ID: ")
+		id, _ = readString(reader)
+		fmt.Print(" * amount: ")
+		amount, _ = readFloat32(reader)
+	} else {
+		fmt.Print(" * account ID: ")
+		id = strconv.Itoa(rand.Intn(100))
+		fmt.Print(id + "\n")
+		fmt.Print(" * amount: ")
+		amount = rand.Float32() * 100.0
+		fmt.Print(amount, "\n")
+	}
 
 	accOperation := AccOperation{
 		AccID:  id,
@@ -126,7 +157,11 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader) error {
 }
 
 func main() {
-	client := NewClient()
+	testBool := flag.Bool("testMode", false, "true for use testmode")
+
+	flag.Parse()
+
+	client := NewClient(*testBool)
 	client.AddCommandFunc(CommandInfo{
 		shortName:   "T",
 		longName:    "Transfer Command",
