@@ -24,7 +24,7 @@ var accounts = map[string]*Account{
 	"AC4": &Account{balance: 4000}}
 
 func handleTransfer(e *Endpoint, r *RequestOperationData, addr net.Addr) {
-	log.Println("Handling Transfer")
+	//log.Println("Handling Transfer")
 
 	var transferData TransferData
 
@@ -43,7 +43,7 @@ func handleTransfer(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 }
 
 func handleGetBalance(e *Endpoint, r *RequestOperationData, addr net.Addr) {
-	log.Println(" -- Balance --")
+	//log.Println(" -- Balance --")
 
 	var accountInformation AccountInformation
 
@@ -66,14 +66,14 @@ func handleGetBalance(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 		result = account.balance
 	}
 
-	log.Printf("%s: $%.2f\n", accountInformation.Id, result)
+	//log.Printf("%s: $%.2f\n", accountInformation.Id, result)
 
 	e.sendResultDescription(fmt.Sprintf("%.2f", result), addr)
 
 }
 
 func handleWithdraw(e *Endpoint, r *RequestOperationData, addr net.Addr) {
-	log.Println(" -- Withdraw --")
+	//log.Println(" -- Withdraw --")
 
 	var accOperation AccOperation
 	reader := bytes.NewReader(r.Data)
@@ -96,13 +96,13 @@ func handleWithdraw(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 
 	payee.withdraw(accOperation.Amount)
 
-	log.Println(accOperation)
+	//log.Println(accOperation)
 
 	e.sendResultDescription("OK", addr)
 }
 
 func handleDeposit(e *Endpoint, r *RequestOperationData, addr net.Addr) {
-	log.Println(" -- Deposit --")
+	//log.Println(" -- Deposit --")
 
 	var accOperation AccOperation
 
@@ -125,7 +125,7 @@ func handleDeposit(e *Endpoint, r *RequestOperationData, addr net.Addr) {
 
 	payer.deposit(accOperation.Amount)
 
-	log.Println(accOperation)
+	//log.Println(accOperation)
 
 	e.sendResultDescription("OK", addr)
 }
@@ -135,7 +135,7 @@ func transferWorker() {
 	for {
 		transferInfo := <-commChannel
 		transferData := transferInfo.Transfer
-		log.Printf("Transfering $%.2f from %s to %s...\n", transferData.Amount, transferData.PayerID, transferData.PayeeID)
+		//log.Printf("Transfering $%.2f from %s to %s...\n", transferData.Amount, transferData.PayerID, transferData.PayeeID)
 
 		payer, ok := accounts[transferData.PayerID]
 
@@ -153,10 +153,10 @@ func transferWorker() {
 
 		payer.withdraw(transferData.Amount)
 		payee.deposit(transferData.Amount)
-		log.Println("- Successful Transaction -")
-		log.Printf("After transaction:")
-		log.Printf("%s: $%.2f\n", transferData.PayerID, payer.balance)
-		log.Printf("%s: $%.2f\n", transferData.PayeeID, payee.balance)
+		// log.Println("- Successful Transaction -")
+		// log.Printf("After transaction:")
+		// log.Printf("%s: $%.2f\n", transferData.PayerID, payer.balance)
+		// log.Printf("%s: $%.2f\n", transferData.PayeeID, payee.balance)
 		transferInfo.TransferEndpoint.sendResultDescription("OK", transferInfo.Addr)
 	}
 }

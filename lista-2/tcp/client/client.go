@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"strings"
@@ -36,7 +37,7 @@ type AccountInformation struct {
 	Id string
 }
 
-type CommandFunc func(*bufio.ReadWriter, *bufio.Reader, bool) error
+type CommandFunc func(*bufio.ReadWriter, *bufio.Reader, bool, *xlsx.Sheet) error
 
 type CommandInfo struct {
 	shortName   string
@@ -48,6 +49,7 @@ type Client struct {
 	command     map[string]CommandFunc
 	commandInfo map[string]CommandInfo
 	testMode    bool
+	currentFile *xlsx.File
 }
 
 func NewClient(mode bool) *Client {
@@ -55,6 +57,7 @@ func NewClient(mode bool) *Client {
 		command:     map[string]CommandFunc{},
 		commandInfo: map[string]CommandInfo{},
 		testMode:    mode,
+		currentFile: nil,
 	}
 }
 
@@ -76,7 +79,7 @@ func (acc *Client) Start(addr string) error {
 		acc.showDescriptions()
 		acc.handleCommands(conn)
 	} else {
-		acc.performOperationTest(conn, 10000)
+		acc.performOperationTest(conn, 1000)
 	}
 
 	return nil
@@ -88,14 +91,9 @@ func (acc *Client) performOperationTest(conn net.Conn, times int) {
 
 	defer conn.Close()
 
-	var file *xlsx.File
 	var sheet *xlsx.Sheet
-	var row *xlsx.Row
-	var cell *xlsx.Cell
 	var err error
 
-	file = xlsx.NewFile()
-	sheet, err = file.AddSheet("Sheet1")
 	if err != nil {
 		fmt.Printf(err.Error())
 	}
@@ -108,32 +106,35 @@ func (acc *Client) performOperationTest(conn net.Conn, times int) {
 		"tcp_transfer_10000.xlsx"}
 
 	for j, cmd := range cmds {
+
+		acc.currentFile = xlsx.NewFile()
+		sheet, err = acc.currentFile.AddSheet("Sheet1")
 		for i := 0; i < times; i++ {
-			fmt.Println("Performing tests...")
+			//fmt.Println("Performing tests...")
 
 			handleCommand := acc.getCommandHandler(cmd)
 			if handleCommand != nil {
-				log.Println("Performing - ", acc.commandInfo[cmd].longName, " -")
+				//log.Println("Performing - ", acc.commandInfo[cmd].longName, " -")
 
-				start := time.Now()
-				err := handleCommand(rw, reader, acc.testMode)
-				end := time.Now()
+				//start := time.Now()
+				err := handleCommand(rw, reader, acc.testMode, sheet)
+				//end := time.Now()
 
-				fmt.Println("Operation ", i, " took ", end.Sub(start).Seconds())
+				//fmt.Println("Operation ", i, " took ", end.Sub(start).Seconds())
 
-				row = sheet.AddRow()
-				cell = row.AddCell()
-				cell.SetFloat(end.Sub(start).Seconds() * 1000) // in miliseconds
+				// row = sheet.AddRow()
+				// cell = row.AddCell()
+				// cell.SetFloat(end.Sub(start).Seconds() * 1000) // in miliseconds
 
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
 				if err != nil {
 					log.Print(cmd, "Failed")
 				}
 			}
 		}
 
-		err = file.Save(filenames[j])
-
+		err = acc.currentFile.Save(filenames[j])
+		fmt.Println("Finished: ", filenames[j])
 		if err != nil {
 			fmt.Printf(err.Error())
 		}
@@ -155,7 +156,7 @@ func (acc *Client) handleCommands(conn net.Conn) {
 		handleCommand := acc.getCommandHandler(cmd)
 		if handleCommand != nil {
 			log.Print("Performing - ", acc.commandInfo[cmd].longName, " -")
-			err := handleCommand(rw, reader, acc.testMode)
+			err := handleCommand(rw, reader, acc.testMode, nil)
 			if err != nil {
 				log.Print(cmd, "Failed")
 			}
