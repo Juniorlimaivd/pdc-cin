@@ -142,15 +142,16 @@ func main() {
 	for _, command := range commands {
 		currentFile = xlsx.NewFile()
 		sheet, _ = currentFile.AddSheet("Sheet1")
-		for index := 0; index < 1000; index++ {
+		for index := 0; index < 10000; index++ {
 			//log.Printf("Call %s", key)
 			command()
 			time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
 		}
 
 		currentFile.Save(filenames[i])
-		i++
 		fmt.Println("Finished: ", filenames[i])
+		i++
+
 	}
 
 }
