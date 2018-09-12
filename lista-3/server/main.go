@@ -44,7 +44,7 @@ func (acc *Account) withdraw(amount float32) error {
 }
 
 func (accMngr *AccountsManager) GetBalance(accID string, reply *float32) error {
-	log.Printf("Getting balance of %s account", accID)
+	//log.Printf("Getting balance of %s account", accID)
 	acc := accMngr.Accs[accID]
 
 	*reply = acc.Balance
@@ -52,7 +52,7 @@ func (accMngr *AccountsManager) GetBalance(accID string, reply *float32) error {
 }
 
 func (accMngr *AccountsManager) Deposit(args AccOpArgs, reply *string) error {
-	log.Printf("Depositing $ %f into %s account", args.Amount, args.AccID)
+	//log.Printf("Depositing $ %f into %s account", args.Amount, args.AccID)
 	acc := accMngr.Accs[args.AccID]
 
 	acc.deposit(args.Amount)
@@ -62,7 +62,7 @@ func (accMngr *AccountsManager) Deposit(args AccOpArgs, reply *string) error {
 }
 
 func (accMngr *AccountsManager) Withdraw(args AccOpArgs, reply *string) error {
-	log.Printf("Withdrawing $ %f from %s account", args.Amount, args.AccID)
+	//log.Printf("Withdrawing $ %f from %s account", args.Amount, args.AccID)
 	acc := accMngr.Accs[args.AccID]
 
 	acc.withdraw(args.Amount)
@@ -72,7 +72,7 @@ func (accMngr *AccountsManager) Withdraw(args AccOpArgs, reply *string) error {
 }
 
 func (accMngr *AccountsManager) Transfer(args *TransferArgs, reply *string) error {
-	log.Printf("Transfering $%.2f from %s to %s...\n", args.Amount, args.PayerID, args.PayeeID)
+	//log.Printf("Transfering $%.2f from %s to %s...\n", args.Amount, args.PayerID, args.PayeeID)
 
 	payer := accMngr.Accs[args.PayerID]
 	payee := accMngr.Accs[args.PayeeID]
