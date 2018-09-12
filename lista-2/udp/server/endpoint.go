@@ -76,7 +76,7 @@ func (e *Endpoint) handleMessage(buffer []byte, n int, addr net.Addr) {
 		return
 	}
 
-	log.Print("Receive command '" + request.OperationType + "'")
+	//log.Print("Receive command '" + request.OperationType + "'")
 
 	handleCommand := e.getCommandHandler(request)
 	if handleCommand != nil {
@@ -90,9 +90,9 @@ func (e *Endpoint) parseCommand(buffer []byte, n int) (RequestOperationData, err
 
 	reader := bytes.NewReader(buffer)
 	dec := gob.NewDecoder(reader)
-	dec.Decode(&request)
+	err := dec.Decode(&request)
 
-	return request, nil
+	return request, err
 }
 
 func (e *Endpoint) getCommandHandler(request RequestOperationData) handleFunc {
