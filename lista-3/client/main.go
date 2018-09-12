@@ -52,12 +52,12 @@ func getBalance() {
 	if err != nil {
 		log.Fatal("account error:", err)
 	}
-	log.Printf("Server reply: %f.2", reply)
+	log.Printf("Server reply: %.2f", reply)
 }
 
 func deposit() {
 	accOpArgs := randomAccOpArgs()
-	log.Printf("Depositing $ %f into %s account", accOpArgs.Amount, accOpArgs.AccID)
+	log.Printf("Depositing $%.2f into %s account", accOpArgs.Amount, accOpArgs.AccID)
 
 	var depositReply string
 	err = client.Call("AccountsManager.Deposit", accOpArgs, &depositReply)
@@ -70,7 +70,7 @@ func deposit() {
 
 func withdraw() {
 	accOpArgs := randomAccOpArgs()
-	log.Printf("Withdrawing $ %f from %s account", accOpArgs.Amount, accOpArgs.AccID)
+	log.Printf("Withdrawing $%.2f from %s account", accOpArgs.Amount, accOpArgs.AccID)
 
 	var withdrawReply string
 	err = client.Call("AccountsManager.Withdraw", accOpArgs, &withdrawReply)
@@ -98,9 +98,8 @@ func main() {
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
-	for index := 0; index < 10; index++ {
-		for key, command := range commands {
-			log.Printf("Call %s", key)
+	for index := 0; index < 1000000; index++ {
+		for _, command := range commands {
 			command()
 		}
 	}
