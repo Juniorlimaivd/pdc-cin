@@ -44,7 +44,7 @@ func (acc *Account) withdraw(amount float32) error {
 }
 
 func (accMngr *AccountsManager) GetBalance(accID string, reply *float32) error {
-	log.Printf("Getting balance from of %s account", accID)
+	log.Printf("Getting balance of %s account", accID)
 	acc := accMngr.Accs[accID]
 
 	*reply = acc.Balance
@@ -62,7 +62,7 @@ func (accMngr *AccountsManager) Deposit(args AccOpArgs, reply *string) error {
 }
 
 func (accMngr *AccountsManager) Withdraw(args AccOpArgs, reply *string) error {
-	log.Printf("Withdrawing $ %f on %s account", args.Amount, args.AccID)
+	log.Printf("Withdrawing $ %f from %s account", args.Amount, args.AccID)
 	acc := accMngr.Accs[args.AccID]
 
 	acc.withdraw(args.Amount)
