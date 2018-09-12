@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"time"
+
+	"github.com/tealeg/xlsx"
 )
 
 // RequestOperationData is cool
@@ -16,7 +19,7 @@ type RequestOperationData struct {
 	Data          []byte
 }
 
-func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool, sheet *xlsx.Sheet) error {
 
 	var payerID, payeeID string
 	var amount float32
@@ -29,16 +32,16 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) 
 		fmt.Print(" * amount: ")
 		amount, _ = readFloat32(reader)
 	} else {
-		fmt.Print(" * payer ID: ")
+		//fmt.Print(" * payer ID: ")
 		payerID = strconv.Itoa(rand.Intn(100))
-		fmt.Print(payerID)
-		fmt.Print("\n * payee ID: ")
+		//fmt.Print(payerID)
+		//fmt.Print("\n * payee ID: ")
 		payeeID = strconv.Itoa(rand.Intn(100))
-		fmt.Print(payeeID)
-		fmt.Print("\n * amount: ")
+		//fmt.Print(payeeID)
+		//fmt.Print("\n * amount: ")
 		amount = rand.Float32() * 100.0
-		fmt.Print(amount)
-		fmt.Print("\n")
+		//fmt.Print(amount)
+		//fmt.Print("\n")
 	}
 
 	transferData := TransferData{
@@ -54,24 +57,31 @@ func transferCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) 
 
 	request := RequestOperationData{OperationType: "TRANSFER", Data: data}
 
-	sendEncondedData(rw, request)
+	if testMode {
+		start := time.Now()
+		sendEncondedData(rw, request)
+		recvOperationResult(rw)
+		end := time.Now()
 
-	check, _ := recvOperationResult(rw)
-
-	if check.ResultDescription == "OK" {
-		fmt.Print("\n % Sucessful operation %\n\n")
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
 	}
+
+	// if check.ResultDescription == "OK" {
+	// 	fmt.Print("\n % Sucessful operation %\n\n")
+	// }
 	return nil
 }
 
-func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool, sheet *xlsx.Sheet) error {
 	var id string
 
 	if !testMode {
 		fmt.Print(" * account ID: ")
 		id, _ = readString(reader)
 	} else {
-		fmt.Print(" * account ID: ")
+		//fmt.Print(" * account ID: ")
 		id = strconv.Itoa(rand.Intn(100))
 	}
 
@@ -79,15 +89,23 @@ func getBalanceCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool
 
 	requestPkt := packtRequestData("BALANCE", accData)
 
-	sendEncondedData(rw, requestPkt)
+	if testMode {
+		start := time.Now()
+		sendEncondedData(rw, requestPkt)
+		recvOperationResult(rw)
+		end := time.Now()
 
-	result, _ := recvOperationResult(rw)
-	fmt.Printf(" ---------------------\n + balance: %s\n\n", result.ResultDescription)
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
+	}
+
+	//fmt.Printf(" ---------------------\n + balance: %s\n\n", result.ResultDescription)
 
 	return nil
 }
 
-func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool, sheet *xlsx.Sheet) error {
 
 	var id string
 	var amount float32
@@ -98,12 +116,12 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) 
 		fmt.Print(" * amount: ")
 		amount, _ = readFloat32(reader)
 	} else {
-		fmt.Print(" * account ID: ")
+		//fmt.Print(" * account ID: ")
 		id = strconv.Itoa(rand.Intn(100))
-		fmt.Print(id + "\n")
-		fmt.Print(" * amount: ")
+		//fmt.Print(id + "\n")
+		//fmt.Print(" * amount: ")
 		amount = rand.Float32() * 100.0
-		fmt.Print(amount, "\n")
+		//fmt.Print(amount, "\n")
 	}
 
 	accOperation := AccOperation{
@@ -111,18 +129,26 @@ func withdrawCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) 
 		Amount: amount}
 
 	requestPkt := packtRequestData("WITHDRAW", accOperation)
-	sendEncondedData(rw, requestPkt)
 
-	check, _ := recvOperationResult(rw)
+	if testMode {
+		start := time.Now()
+		sendEncondedData(rw, requestPkt)
+		recvOperationResult(rw)
+		end := time.Now()
 
-	if check.ResultDescription == "OK" {
-		fmt.Print("\n % Sucessful operation %\n\n")
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
 	}
+
+	// if check.ResultDescription == "OK" {
+	// 	fmt.Print("\n % Sucessful operation %\n\n")
+	// }
 
 	return nil
 }
 
-func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) error {
+func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool, sheet *xlsx.Sheet) error {
 	var id string
 	var amount float32
 
@@ -132,12 +158,12 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) e
 		fmt.Print(" * amount: ")
 		amount, _ = readFloat32(reader)
 	} else {
-		fmt.Print(" * account ID: ")
+		//fmt.Print(" * account ID: ")
 		id = strconv.Itoa(rand.Intn(100))
-		fmt.Print(id + "\n")
-		fmt.Print(" * amount: ")
+		//fmt.Print(id + "\n")
+		//fmt.Print(" * amount: ")
 		amount = rand.Float32() * 100.0
-		fmt.Print(amount, "\n")
+		//fmt.Print(amount, "\n")
 	}
 
 	accOperation := AccOperation{
@@ -145,13 +171,24 @@ func depositCommand(rw *bufio.ReadWriter, reader *bufio.Reader, testMode bool) e
 		Amount: amount}
 
 	requestPkt := packtRequestData("DEPOSIT", accOperation)
+
+	if testMode {
+		start := time.Now()
+		sendEncondedData(rw, requestPkt)
+		recvOperationResult(rw)
+		end := time.Now()
+
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
+	}
 	sendEncondedData(rw, requestPkt)
 
-	check, _ := recvOperationResult(rw)
+	//check, _ := recvOperationResult(rw)
 
-	if check.ResultDescription == "OK" {
-		fmt.Print("\n % Sucessful operation %\n\n")
-	}
+	// if check.ResultDescription == "OK" {
+	// 	fmt.Print("\n % Sucessful operation %\n\n")
+	// }
 
 	return nil
 }

@@ -63,7 +63,7 @@ func (e *Endpoint) handleMessages(conn net.Conn) {
 	defer conn.Close()
 
 	for {
-		log.Println("Handling incoming commands...")
+		//log.Println("Handling incoming commands...")
 		request, err := e.parseCommand(e.rw)
 
 		switch {
@@ -78,7 +78,7 @@ func (e *Endpoint) handleMessages(conn net.Conn) {
 			return
 		}
 
-		log.Print("Receive command '" + request.OperationType + "'")
+		//log.Print("Receive command '" + request.OperationType + "'")
 
 		handleCommand := e.getCommandHandler(request)
 		if handleCommand != nil {
@@ -92,9 +92,9 @@ func (e *Endpoint) parseCommand(rw *bufio.ReadWriter) (RequestOperationData, err
 
 	decoder := gob.NewDecoder(rw)
 
-	decoder.Decode(&request)
+	err := decoder.Decode(&request)
 
-	return request, nil
+	return request, err
 }
 
 func (e *Endpoint) getCommandHandler(request RequestOperationData) handleFunc {
