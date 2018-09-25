@@ -33,7 +33,7 @@ func unPacketToString(data []byte) string {
 
 func main() {
 	times := 10
-	crh := newClientRequestHandler("localhost", 12345, "udp")
+	crh := newClientRequestHandler("localhost", 12345, "tcp")
 
 	crh.connect()
 

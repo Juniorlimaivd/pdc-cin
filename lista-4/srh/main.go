@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 )
 
 // AccountInformation holds info about request account
@@ -37,8 +38,12 @@ func main() {
 
 	for {
 		data := srh.receive()
+		if data == nil {
+			break
+		}
 		accInfo := unPacketToAccInfo(data)
-		print(accInfo.ID)
+		fmt.Println(accInfo.ID)
+
 		pkt := packetData("OK")
 		srh.send(pkt)
 	}
