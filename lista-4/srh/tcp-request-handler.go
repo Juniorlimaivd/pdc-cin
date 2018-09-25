@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/gob"
 	"log"
 	"net"
 )
@@ -31,10 +32,20 @@ func NewTCPServerRequestHandler(port string) *TCPServerRequestHandler {
 	return tcpSRH
 }
 
-func (c *TCPServerRequestHandler) send(arg []byte, reply *string) {
+func (c *TCPServerRequestHandler) send(msg []byte) {
+	encoder := gob.NewEncoder(c.inToClient)
 
+	encoder.Encode(msg)
+
+	c.inToClient.Flush()
 }
 
-func (c *TCPServerRequestHandler) receive() {
+func (c *TCPServerRequestHandler) receive() []byte {
+	decoder := gob.NewDecoder(c.outToClient)
 
+	var data []byte
+
+	decoder.Decode(&data)
+
+	return data
 }
