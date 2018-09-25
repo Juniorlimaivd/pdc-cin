@@ -13,12 +13,13 @@ type ClientRequestHandler struct {
 	midHandler *RPCClientRequestHandler
 }
 
-func newClientRequestHandler(host string, port int) *ClientRequestHandler {
+func newClientRequestHandler(host string, port int, handlerType string) *ClientRequestHandler {
 	return &ClientRequestHandler{
 		host:               host,
 		port:               port,
 		sentMessageSize:    1024,
 		receiveMessageSize: 1024,
+		handlerType:        handlerType,
 	}
 }
 

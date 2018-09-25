@@ -167,7 +167,7 @@ func main() {
 	endpoint.addHandleFunc("BALANCE", handleGetBalance)
 	endpoint.addHandleFunc("WITHDRAW", handleWithdraw)
 	endpoint.addHandleFunc("DEPOSIT", handleDeposit)
-	endpoint.listen(":8081")
+	endpoint.listen(":12345")
 
 	fmt.Scanln()
 }

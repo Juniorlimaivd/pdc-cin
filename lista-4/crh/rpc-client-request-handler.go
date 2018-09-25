@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/rpc"
+	"strconv"
 )
 
 // RPCClientRequestHandler handles tcp connections
@@ -20,7 +21,7 @@ func newRPCClientRequestHandler(host string, port int) *RPCClientRequestHandler 
 }
 
 func (c *RPCClientRequestHandler) connect() error {
-	addr := c.host + ":" + string(c.port)
+	addr := c.host + ":" + strconv.Itoa(c.port)
 	var err error
 	c.client, err = rpc.DialHTTP("tcp", addr)
 	c.client.Call("Receiver.getID", nil, &c.id)
@@ -29,6 +30,7 @@ func (c *RPCClientRequestHandler) connect() error {
 
 func (c *RPCClientRequestHandler) send(data []byte) error {
 	c.client.Call("Receiver.SendedByte", data, nil)
+	return nil
 }
 
 func (c *RPCClientRequestHandler) receive() []byte {

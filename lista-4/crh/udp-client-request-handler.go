@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func newUDPClientRequestHandler(host string, port int) *UDPClientRequestHandler 
 }
 
 func (c *UDPClientRequestHandler) connect() error {
-	addr := c.host + ":" + string(c.port)
+	addr := c.host + ":" + strconv.Itoa(c.port)
 	var err error
 
 	c.conn, err = net.Dial("udp", addr)
@@ -34,6 +35,8 @@ func (c *UDPClientRequestHandler) connect() error {
 	if err != nil {
 		return errors.Wrap(err, "Dialing "+addr+" failed")
 	}
+
+	fmt.Println("connected!")
 	c.rw = bufio.NewReadWriter(bufio.NewReader(c.conn), bufio.NewWriter(c.conn))
 	return nil
 }
