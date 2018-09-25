@@ -1,17 +1,44 @@
 package main
 
+import (
+	"bytes"
+	"encoding/gob"
+)
+
+type AccountInformation struct {
+	ID string
+}
+
+func packetData(data interface{}) []byte {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+
+	encoder.Encode(data)
+	return buf.Bytes()
+}
+
+func unPacketToAccInfo(data []byte) AccountInformation {
+	var result AccountInformation
+	var buf bytes.Buffer
+	buf.Write(data)
+	decoder := gob.NewDecoder(&buf)
+
+	decoder.Decode(&result)
+
+	return result
+}
+
 func main() {
-	handlerType := "middleware"
-	port := "1234"
-	switch handlerType {
-	case "tcp":
-		NewTCPServerRequestHandler(port)
-		break
-	case "udp":
-		NewUDPServerRequestHandler(port)
-		break
-	case "middleware":
-		NewRPCServerRequestHandler(port)
-		break
+
+	port := 12345
+
+	srh := newServerRequestHandler("tcp", port)
+
+	for {
+		data := srh.receive()
+		accInfo := unPacketToAccInfo(data)
+		print(accInfo.ID)
+		pkt := packetData("OK")
+		srh.send(pkt)
 	}
 }
