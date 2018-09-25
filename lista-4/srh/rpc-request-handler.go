@@ -30,5 +30,5 @@ func (c *RPCServerRequestHandler) send(msg []byte) {
 }
 
 func (c *RPCServerRequestHandler) receive() []byte {
-
+	return nil
 }

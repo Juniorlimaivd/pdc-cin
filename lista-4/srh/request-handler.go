@@ -40,5 +40,5 @@ func (srh *ServerRequestHandler) send(data []byte) {
 }
 
 func (srh *ServerRequestHandler) receive() []byte {
-	srh.handler.receive()
+	return srh.handler.receive()
 }

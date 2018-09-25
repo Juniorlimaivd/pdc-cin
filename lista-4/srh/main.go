@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 )
 
+// AccountInformation holds info about request account
 type AccountInformation struct {
 	ID string
 }

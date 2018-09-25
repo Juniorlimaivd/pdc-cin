@@ -16,11 +16,10 @@ type TCPServerRequestHandler struct {
 
 func newTCPServerRequestHandler(port string) *TCPServerRequestHandler {
 	tcpSRH := new(TCPServerRequestHandler)
-	var err error
-	tcpSRH.listener, err = net.Listen("tcp", port)
+	tcpSRH.listener, _ = net.Listen("tcp", port)
 
 	log.Println("Listen on", tcpSRH.listener.Addr().String())
-	conn, err := tcpSRH.listener.Accept()
+	conn, _ := tcpSRH.listener.Accept()
 	log.Println("Accept a connection request from", conn.RemoteAddr())
 
 	tcpSRH.inToClient = bufio.NewWriter(conn)

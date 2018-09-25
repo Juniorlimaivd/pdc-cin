@@ -31,8 +31,7 @@ func (c *UDPServerRequestHandler) send(msg []byte) {
 
 func (c *UDPServerRequestHandler) receive() []byte {
 	buffer := make([]byte, 1024)
-	var err error
 	var n int
-	n, c.clientAddr, err = c.listener.ReadFrom(buffer)
+	n, c.clientAddr, _ = c.listener.ReadFrom(buffer)
 	return buffer[:n]
 }
