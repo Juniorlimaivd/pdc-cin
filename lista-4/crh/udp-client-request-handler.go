@@ -33,6 +33,7 @@ func (c *UDPClientRequestHandler) connect() error {
 	c.conn, err = net.Dial("udp", addr)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		return errors.Wrap(err, "Dialing "+addr+" failed")
 	}
 

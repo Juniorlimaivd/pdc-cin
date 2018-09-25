@@ -34,7 +34,7 @@ func main() {
 
 	port := 12345
 
-	srh := newServerRequestHandler("tcp", port)
+	srh := newServerRequestHandler("udp", port)
 
 	for {
 		data := srh.receive()
