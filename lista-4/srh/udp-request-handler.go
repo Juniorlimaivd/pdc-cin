@@ -7,34 +7,32 @@ import (
 )
 
 type UDPServerRequestHandler struct {
-	port        int
-	listener    net.Listener
-	rw          *bufio.ReadWriter
-	outToClient *bufio.Reader
-	inToClient  *bufio.Writer
+	port       int
+	listener   net.PacketConn
+	rw         *bufio.ReadWriter
+	clientAddr net.Addr
 }
 
 func NewUDPServerRequestHandler(port string) *UDPServerRequestHandler {
 	udpSRH := new(UDPServerRequestHandler)
 	var err error
-	udpSRH.listener, err = net.Listen("udp", port)
+	udpSRH.listener, err = net.ListenPacket("udp", port)
 	if err != nil {
 		// return errors.Wrapf(err, "Unable to listen on port %s\n", port)
 	}
-	log.Println("Listen on", udpSRH.listener.Addr().String())
-	conn, err := udpSRH.listener.Accept()
-	log.Println("Accept a connection request from", conn.RemoteAddr())
-
-	udpSRH.inToClient = bufio.NewWriter(conn)
-	udpSRH.outToClient = bufio.NewReader(conn)
+	log.Println("Listen on", udpSRH.listener.LocalAddr().String())
 
 	return udpSRH
 }
 
-func (c *UDPServerRequestHandler) send(arg []byte, reply *string) {
-
+func (c *UDPServerRequestHandler) send(msg []byte) {
+	c.listener.WriteTo(msg, c.clientAddr)
 }
 
-func (c *UDPServerRequestHandler) receive() {
-
+func (c *UDPServerRequestHandler) receive() []byte {
+	buffer := make([]byte, 1024)
+	var err error
+	var n int
+	n, c.clientAddr, err = c.listener.ReadFrom(buffer)
+	return buffer[:n]
 }

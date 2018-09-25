@@ -25,10 +25,10 @@ func NewRPCServerRequestHandler(port string) *RPCServerRequestHandler {
 	return rpcServerRequestHandler
 }
 
-func (c *RPCServerRequestHandler) send(arg []byte, reply *string) {
+func (c *RPCServerRequestHandler) send(msg []byte) {
 
 }
 
-func (c *RPCServerRequestHandler) receive() {
+func (c *RPCServerRequestHandler) receive() []byte {
 
 }
