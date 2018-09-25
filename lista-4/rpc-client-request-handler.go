@@ -6,9 +6,9 @@ import (
 
 // RPCClientRequestHandler handles tcp connections
 type RPCClientRequestHandler struct {
-	host string
-	port int
-
+	host   string
+	port   int
+	id     string
 	client *rpc.Client
 }
 
@@ -23,6 +23,7 @@ func (c *RPCClientRequestHandler) connect() error {
 	addr := c.host + ":" + string(c.port)
 	var err error
 	c.client, err = rpc.DialHTTP("tcp", addr)
+	c.client.Call("Receiver.getID", nil, &c.id)
 	return err
 }
 
@@ -32,6 +33,6 @@ func (c *RPCClientRequestHandler) send(data []byte) error {
 
 func (c *RPCClientRequestHandler) receive() []byte {
 	var data []byte
-	c.client.Call("Receiver.ReceiveByte", nil, &data)
+	c.client.Call("Receiver.ReceiveByte", c.id, &data)
 	return data
 }
