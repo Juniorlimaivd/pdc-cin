@@ -5,8 +5,10 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/streadway/amqp"
+	"github.com/tealeg/xlsx"
 )
 
 // AccountInformation is cool
@@ -42,6 +44,11 @@ func failOnError(err error, msg string) {
 
 func main() {
 	iterations := 10
+	filename := "amqp_without_handler.xlsx"
+
+	currentFile := xlsx.NewFile()
+	sheet, _ := currentFile.AddSheet("Sheet1")
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -84,7 +91,7 @@ func main() {
 	for i := 0; i < iterations; i++ {
 		accInfo := AccountInformation{ID: "1234"}
 		data := packetData(accInfo)
-
+		start := time.Now()
 		err = ch.Publish(
 			"",     // exchange
 			q.Name, // routing key
@@ -94,13 +101,20 @@ func main() {
 				ContentType: "text/plain",
 				Body:        data,
 			})
-		failOnError(err, "Failed to publish a message")
+		//failOnError(err, "Failed to publish a message")
 
 		result := <-msgs
+		end := time.Now()
+
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
 
 		response := unPacketToString(result.Body)
 
-		fmt.Println(response)
+		//fmt.Println(response)
 	}
+
+	currentFile.Save(filename)
 
 }

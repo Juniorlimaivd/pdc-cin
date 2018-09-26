@@ -5,6 +5,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"time"
+
+	"github.com/tealeg/xlsx"
 )
 
 // AccountInformation is cool
@@ -33,6 +35,11 @@ func unPacketToString(data []byte) string {
 
 func main() {
 	times := 10
+	filename := "crh_middleware.xlsx"
+
+	currentFile := xlsx.NewFile()
+	sheet, _ := currentFile.AddSheet("Sheet1")
+
 	crh := newClientRequestHandler("localhost", 12345, "middleware")
 
 	crh.connect()
@@ -43,11 +50,17 @@ func main() {
 		data := packetData(accInfo)
 
 		start := time.Now()
+
 		crh.send(data)
 		pkt := crh.receive()
 
 		end := time.Now()
-		fmt.Println("Operation took ", end.Sub(start))
+
+		row := sheet.AddRow()
+		cell := row.AddCell()
+		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
+
+		//fmt.Println("Operation took ", end.Sub(start))
 
 		result := unPacketToString(pkt)
 
@@ -55,5 +68,7 @@ func main() {
 			fmt.Println("Successful operation")
 		}
 	}
+
+	currentFile.Save(filename)
 
 }
