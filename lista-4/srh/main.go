@@ -4,7 +4,14 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
+	"os"
 )
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
 
 // AccountInformation holds info about request account
 type AccountInformation struct {
@@ -32,9 +39,16 @@ func unPacketToAccInfo(data []byte) AccountInformation {
 
 func main() {
 
+	handlerType := os.Args[1]
+	if len(os.Args) != 2 {
+		log.Fatal("Invalid number of arguments")
+		return
+	}
+
 	port := 12345
 
-	srh := newServerRequestHandler("middleware", port)
+	srh, err := newServerRequestHandler(handlerType, port)
+	failOnError(err, "Failed to create a new server request handler")
 
 	for {
 		data := srh.receive()
@@ -46,7 +60,5 @@ func main() {
 		sentString := "OK"
 		pkt := packetData(sentString)
 		srh.send(pkt)
-		log.Printf("[x] Sent %s", sentString)
-
 	}
 }

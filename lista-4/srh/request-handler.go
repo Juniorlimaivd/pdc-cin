@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"strconv"
 )
 
@@ -16,7 +17,7 @@ type ServerRequestHandler struct {
 	port        int
 }
 
-func newServerRequestHandler(handlerType string, port int) *ServerRequestHandler {
+func newServerRequestHandler(handlerType string, port int) (*ServerRequestHandler, error) {
 	srh := ServerRequestHandler{handlerType: handlerType, port: port}
 
 	switch handlerType {
@@ -29,9 +30,11 @@ func newServerRequestHandler(handlerType string, port int) *ServerRequestHandler
 	case "middleware":
 		srh.handler = NewAMQServerRequestHandler(strconv.Itoa(port))
 		break
+	default:
+		return nil, errors.New("No handler from type \"" + handlerType + "\" found")
 	}
 
-	return &srh
+	return &srh, nil
 
 }
 
