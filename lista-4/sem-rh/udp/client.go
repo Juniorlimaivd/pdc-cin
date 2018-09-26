@@ -4,12 +4,32 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
-	"fmt"
+	"log"
 	"net"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/tealeg/xlsx"
 )
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
 
 type AccountInformation struct {
 	ID string
@@ -35,8 +55,17 @@ func unPacketToString(data []byte) string {
 }
 
 func main() {
-	times := 10
-	filename := "udp_without_handler.xlsx"
+	if len(os.Args) != 3 {
+		log.Fatal("Invalid number of arguments")
+	}
+
+	times, err := strconv.Atoi(os.Args[1])
+	failOnError(err, "Failed to #times of execution")
+
+	filename := os.Args[2]
+	if exists(filename) {
+		log.Fatal("File \"" + filename + "\" already exists")
+	}
 
 	currentFile := xlsx.NewFile()
 	sheet, _ := currentFile.AddSheet("Sheet1")
@@ -68,7 +97,9 @@ func main() {
 		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
 
 		dec := unPacketToString(data2)
-		fmt.Println("Message from server: " + dec)
+		if dec != "OK" {
+			log.Fatal("Some error has occurred")
+		}
 	}
 
 	currentFile.Save(filename)

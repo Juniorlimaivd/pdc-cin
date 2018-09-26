@@ -53,9 +53,9 @@ func main() {
 		if data2 == nil {
 			break
 		}
-		dec := unPacketToAccInfo(data2)
+		unPacketToAccInfo(data2)
 		// output message received
-		fmt.Println("Message Received:" + dec.ID)
+		// fmt.Println("Message Received:" + dec.ID)
 		// sample process for string received
 		newmessage := "OK"
 		// send new string back to client

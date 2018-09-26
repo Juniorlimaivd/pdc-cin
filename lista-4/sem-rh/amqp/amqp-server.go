@@ -95,9 +95,9 @@ func main() {
 
 		result := <-msgs
 
-		accInfo := unPacketToAccInfo(result.Body)
+		unPacketToAccInfo(result.Body)
 
-		fmt.Println(accInfo.ID)
+		// fmt.Println(accInfo.ID)
 
 		data := packetData("OK")
 

@@ -56,8 +56,8 @@ func main() {
 		dec := gob.NewDecoder(reader)
 		err = dec.Decode(&data)
 
-		msg_rcv := unPacketToAccInfo(data)
-		fmt.Println("Message Received:" + msg_rcv.ID)
+		unPacketToAccInfo(data)
+		// fmt.Println("Message Received:" + msg_rcv.ID)
 
 		msg := "OK"
 		msg_enc := packetData(msg)

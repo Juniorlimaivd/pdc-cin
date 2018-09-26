@@ -3,13 +3,32 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/streadway/amqp"
 	"github.com/tealeg/xlsx"
 )
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
 
 // AccountInformation is cool
 type AccountInformation struct {
@@ -35,16 +54,18 @@ func unPacketToString(data []byte) string {
 	return result
 }
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-		panic(fmt.Sprintf("%s: %s", msg, err))
-	}
-}
-
 func main() {
-	iterations := 10
-	filename := "amqp_without_handler.xlsx"
+	if len(os.Args) != 3 {
+		log.Fatal("Invalid number of arguments")
+	}
+
+	times, err := strconv.Atoi(os.Args[1])
+	failOnError(err, "Failed to #times of execution")
+
+	filename := os.Args[2]
+	if exists(filename) {
+		log.Fatal("File \"" + filename + "\" already exists")
+	}
 
 	currentFile := xlsx.NewFile()
 	sheet, _ := currentFile.AddSheet("Sheet1")
@@ -88,7 +109,7 @@ func main() {
 	)
 	failOnError(err, "Failed to register a consumer")
 
-	for i := 0; i < iterations; i++ {
+	for i := 0; i < times; i++ {
 		accInfo := AccountInformation{ID: "1234"}
 		data := packetData(accInfo)
 		start := time.Now()
@@ -111,7 +132,9 @@ func main() {
 		cell.SetFloat(float64(end.Sub(start).Nanoseconds()) / 1000000.) // in miliseconds
 
 		response := unPacketToString(result.Body)
-
+		if response != "OK" {
+			log.Fatal("Some error has occurred")
+		}
 		//fmt.Println(response)
 	}
 

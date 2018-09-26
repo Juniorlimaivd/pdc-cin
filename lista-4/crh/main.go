@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -11,6 +10,18 @@ import (
 
 	"github.com/tealeg/xlsx"
 )
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -40,18 +51,6 @@ func unPacketToString(data []byte) string {
 	decoder.Decode(&result)
 
 	return result
-}
-
-// exists returns whether the given file or directory exists or not
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 func main() {
@@ -99,8 +98,8 @@ func main() {
 
 		result := unPacketToString(pkt)
 
-		if result == "OK" {
-			fmt.Println("Successful operation")
+		if result != "OK" {
+			log.Fatal("Some error has occurred")
 		}
 	}
 
