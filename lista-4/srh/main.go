@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 )
 
 // AccountInformation holds info about request account
@@ -33,13 +34,16 @@ func main() {
 
 	port := 12345
 
-	srh := newServerRequestHandler("tcp", port)
+	srh := newServerRequestHandler("middleware", port)
 
 	for {
 		data := srh.receive()
 		accInfo := unPacketToAccInfo(data)
-		print(accInfo.ID)
-		pkt := packetData("OK")
+		log.Println(accInfo.ID)
+		sentString := "OK"
+		pkt := packetData(sentString)
 		srh.send(pkt)
+		log.Printf("[x] Sent %s", sentString)
+
 	}
 }

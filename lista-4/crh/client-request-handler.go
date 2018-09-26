@@ -10,7 +10,7 @@ type ClientRequestHandler struct {
 
 	tcpHandler *TCPClientRequestHandler
 	udpHandler *UDPClientRequestHandler
-	midHandler *RPCClientRequestHandler
+	midHandler *AMQClientRequestHandler
 }
 
 func newClientRequestHandler(host string, port int, handlerType string) *ClientRequestHandler {
@@ -33,7 +33,7 @@ func (crh *ClientRequestHandler) connect() error {
 		crh.udpHandler.connect()
 		break
 	case "middleware":
-		crh.midHandler = newRPCClientRequestHandler(crh.host, crh.port)
+		crh.midHandler = newAMQClientRequestHandler(crh.host, crh.port)
 		crh.midHandler.connect()
 		break
 	}

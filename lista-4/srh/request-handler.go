@@ -27,7 +27,7 @@ func newServerRequestHandler(handlerType string, port int) *ServerRequestHandler
 		srh.handler = newTCPServerRequestHandler(strconv.Itoa(port))
 		break
 	case "middleware":
-		srh.handler = NewRPCServerRequestHandler(strconv.Itoa(port))
+		srh.handler = NewAMQServerRequestHandler(strconv.Itoa(port))
 		break
 	}
 
