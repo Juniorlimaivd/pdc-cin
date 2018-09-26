@@ -39,12 +39,10 @@ func unPacketToAccInfo(data []byte) AccountInformation {
 
 func main() {
 
-	handlerType := os.Args[1]
 	if len(os.Args) != 2 {
 		log.Fatal("Invalid number of arguments")
-		return
 	}
-
+	handlerType := os.Args[1]
 	port := 12345
 
 	srh, err := newServerRequestHandler(handlerType, port)

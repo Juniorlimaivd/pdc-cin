@@ -4,10 +4,19 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/tealeg/xlsx"
 )
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}
 
 // AccountInformation is cool
 type AccountInformation struct {
@@ -33,18 +42,44 @@ func unPacketToString(data []byte) string {
 	return result
 }
 
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 func main() {
-	times := 10
-	filename := "crh_middleware.xlsx"
+	if len(os.Args) != 4 {
+		log.Fatal("Invalid number of arguments")
+	}
+
+	handlerType := os.Args[1]
+	times, err := strconv.Atoi(os.Args[2])
+	failOnError(err, "Failed to #times of execution")
+
+	filename := os.Args[3]
+	if exists(filename) {
+		log.Fatal("File \"" + filename + "\" already exists")
+	}
 
 	currentFile := xlsx.NewFile()
 	sheet, _ := currentFile.AddSheet("Sheet1")
 
-	crh := newClientRequestHandler("localhost", 12345, "middleware")
+	crh := newClientRequestHandler("localhost", 12345, handlerType)
 
-	crh.connect()
+	err = crh.connect()
+	failOnError(err, "Failed to connect to Server")
 
 	accInfo := AccountInformation{ID: "1234"}
+	log.Println("Sending " + strconv.Itoa(times) + " requests to " + handlerType + " request handler")
+	log.Println("Logging time spent into " + filename + " file")
+
 	for i := 0; i < times; i++ {
 
 		data := packetData(accInfo)

@@ -1,5 +1,7 @@
 package main
 
+import "errors"
+
 // ClientRequestHandler is a facade for connection handlers
 type ClientRequestHandler struct {
 	host               string
@@ -36,6 +38,8 @@ func (crh *ClientRequestHandler) connect() error {
 		crh.midHandler = newAMQClientRequestHandler(crh.host, crh.port)
 		crh.midHandler.connect()
 		break
+	default:
+		return errors.New("No handler of type \"" + crh.handlerType + "\" found")
 	}
 	return nil
 }

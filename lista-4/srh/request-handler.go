@@ -31,7 +31,7 @@ func newServerRequestHandler(handlerType string, port int) (*ServerRequestHandle
 		srh.handler = NewAMQServerRequestHandler(strconv.Itoa(port))
 		break
 	default:
-		return nil, errors.New("No handler from type \"" + handlerType + "\" found")
+		return nil, errors.New("No handler of type \"" + handlerType + "\" found")
 	}
 
 	return &srh, nil
