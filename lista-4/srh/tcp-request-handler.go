@@ -16,7 +16,7 @@ type TCPServerRequestHandler struct {
 
 func newTCPServerRequestHandler(port string) *TCPServerRequestHandler {
 	tcpSRH := new(TCPServerRequestHandler)
-	tcpSRH.listener, _ = net.Listen("tcp", port)
+	tcpSRH.listener, _ = net.Listen("tcp", ":"+port)
 
 	log.Println("Listen on", tcpSRH.listener.Addr().String())
 	conn, _ := tcpSRH.listener.Accept()

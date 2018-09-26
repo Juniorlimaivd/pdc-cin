@@ -38,6 +38,9 @@ func main() {
 
 	for {
 		data := srh.receive()
+		if data == nil {
+			break
+		}
 		accInfo := unPacketToAccInfo(data)
 		log.Println(accInfo.ID)
 		sentString := "OK"
