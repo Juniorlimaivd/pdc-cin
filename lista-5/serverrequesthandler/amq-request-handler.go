@@ -12,13 +12,13 @@ type AMQServerRequestHandler struct {
 }
 
 func NewAMQServerRequestHandler(port string) *AMQServerRequestHandler {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	conn, _ := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	//failOnError(err, "Failed to connect to RabbitMQ")
 
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	ch, _ := conn.Channel()
+	//failOnError(err, "Failed to open a channel")
 
-	inFromClient, err := ch.QueueDeclare(
+	inFromClient, _ := ch.QueueDeclare(
 		"outToServer", // name
 		false,         // durable
 		false,         // delete when unused
@@ -26,7 +26,7 @@ func NewAMQServerRequestHandler(port string) *AMQServerRequestHandler {
 		false,         // no-wait
 		nil,           // arguments
 	)
-	msgs, err := ch.Consume(
+	msgs, _ := ch.Consume(
 		inFromClient.Name, // queue
 		"",                // consumer
 		true,              // auto-ack
@@ -35,9 +35,9 @@ func NewAMQServerRequestHandler(port string) *AMQServerRequestHandler {
 		false,             // no-wait
 		nil,               // args
 	)
-	failOnError(err, "Failed to register a consumer")
+	//failOnError(err, "Failed to register a consumer")
 
-	outToClient, err := ch.QueueDeclare(
+	outToClient, _ := ch.QueueDeclare(
 		"inFromServer", // name
 		false,          // durable
 		false,          // delete when unused
@@ -45,7 +45,7 @@ func NewAMQServerRequestHandler(port string) *AMQServerRequestHandler {
 		false,          // no-wait
 		nil,            // arguments
 	)
-	failOnError(err, "Failed to declare a queue")
+	//failOnError(err, "Failed to declare a queue")
 
 	return &AMQServerRequestHandler{
 		msgs:        msgs,
@@ -56,7 +56,7 @@ func NewAMQServerRequestHandler(port string) *AMQServerRequestHandler {
 }
 
 func (c *AMQServerRequestHandler) send(data []byte) {
-	err := c.ch.Publish(
+	c.ch.Publish(
 		"",                 // exchange
 		c.outToClient.Name, // routing key
 		false,              // mandatory
@@ -65,7 +65,7 @@ func (c *AMQServerRequestHandler) send(data []byte) {
 			ContentType: "text/plain",
 			Body:        data,
 		})
-	failOnError(err, "Failed to publish a message")
+	//failOnError(err, "Failed to publish a message")
 }
 
 func (c *AMQServerRequestHandler) receive() []byte {

@@ -11,6 +11,7 @@ type ServerRequestHandlerInterface interface {
 	receive() []byte
 }
 
+// ServerRequestHandler interfaces server methods
 type ServerRequestHandler struct {
 	handler     ServerRequestHandlerInterface
 	handlerType string
@@ -38,10 +39,10 @@ func NewServerRequestHandler(handlerType string, port int) (*ServerRequestHandle
 
 }
 
-func (srh *ServerRequestHandler) send(data []byte) {
+func (srh *ServerRequestHandler) Send(data []byte) {
 	srh.handler.send(data)
 }
 
-func (srh *ServerRequestHandler) receive() []byte {
+func (srh *ServerRequestHandler) Receive() []byte {
 	return srh.handler.receive()
 }
