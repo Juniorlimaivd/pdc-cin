@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"reflect"
 
@@ -76,9 +76,6 @@ func (i *Invoker) registerMethods() {
 		}
 
 		returnType := methodType.Out(0)
-		fmt.Println("methodName : ", methodName)
-		fmt.Println("ArgsType : ", argsType)
-		fmt.Println("ReturnType : ", returnType)
 		methods[methodName] = &methodInfo{method: method, argsType: argsType, replyType: returnType}
 	}
 	i.methods = methods
@@ -119,13 +116,26 @@ func (i *Invoker) handleRequestPkt(requestPkt *requestPkt) *request {
 // Invoke invokes the invoker
 func (i *Invoker) Invoke() {
 	for {
+
 		data := i.srh.Receive()
 		request := new(requestPkt)
-		i.marshaller.unmarshall(data, &request)
-		req := i.handleRequestPkt(request)
-		fmt.Println(request)
-		returnPkt := i.handleOperation(req)
-		pkt := i.marshaller.marshall(returnPkt)
-		i.srh.Send(pkt)
+		err := i.marshaller.unmarshall(data, &request)
+
+		switch {
+		case err == io.EOF:
+			log.Println("close this connection.\n   ---")
+			return
+		case err != nil:
+			log.Println("\nError reading command. Got: \n", err)
+			continue
+		}
+
+		go func() {
+			req := i.handleRequestPkt(request)
+			returnPkt := i.handleOperation(req)
+			pkt := i.marshaller.marshall(returnPkt)
+			i.srh.Send(pkt)
+		}()
+
 	}
 }

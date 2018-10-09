@@ -21,8 +21,9 @@ func (m *Marshaller) marshall(data interface{}) []byte {
 	return buffer.Bytes()
 }
 
-func (m *Marshaller) unmarshall(data []byte, result interface{}) {
+func (m *Marshaller) unmarshall(data []byte, result interface{}) error {
 
 	buffer := bytes.NewBuffer(data)
-	gob.NewDecoder(buffer).Decode(result)
+	err := gob.NewDecoder(buffer).Decode(result)
+	return err
 }

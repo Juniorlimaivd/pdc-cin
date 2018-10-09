@@ -22,10 +22,12 @@ func main() {
 	crh.connect()
 	fmt.Scanln()
 	accID := "AC1"
-	args := []interface{}{reflect.ValueOf(accID).Interface()}
+	accID2 := "AC2"
+	var amount float32 = 100.0
+	args := []interface{}{reflect.ValueOf(accID).Interface(), reflect.ValueOf(accID2).Interface(), reflect.ValueOf(amount).Interface()}
 
-	var testfloat float32 = 1.0
-	request := requestPkt{MethodName: "GetBalance", Args: args, ReturnType: reflect.ValueOf(testfloat).Interface()}
+	var testfloat = "a"
+	request := requestPkt{MethodName: "Transfer", Args: args, ReturnType: reflect.ValueOf(testfloat).Interface()}
 	fmt.Println(request)
 	marshaller := new(Marshaller)
 
