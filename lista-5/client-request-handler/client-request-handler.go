@@ -15,7 +15,7 @@ type ClientRequestHandler struct {
 	midHandler *AMQClientRequestHandler
 }
 
-func newClientRequestHandler(host string, port int, handlerType string) *ClientRequestHandler {
+func NewClientRequestHandler(host string, port int, handlerType string) *ClientRequestHandler {
 	return &ClientRequestHandler{
 		host:               host,
 		port:               port,
